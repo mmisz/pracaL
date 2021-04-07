@@ -126,8 +126,6 @@ class Scrap(db.Model):
     '''
     text = db.Column(db.Text, nullable=False)
     description = db.Column(db.Text, nullable=False)
-    rates_sum = db.Column(db.Integer, nullable=False, default=0)
-    rates_count = db.Column(db.Integer, nullable=False, default=0)
     track_id = db.Column(db.Integer, db.ForeignKey('track.id'), nullable=False)
     opinions = db.relationship('Scrap_Opinion', backref='scrap', lazy=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -144,11 +142,18 @@ class Scrap_Opinion(db.Model):
     def __repr__(self):
         return f"Scrap_Opinion('{self.scrap_id}', '{self.text}')"
 
+class Scrap_Rating(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    rate = db.Column(db.String(1), nullable=False)
+    scrap_id = db.Column(db.Integer, db.ForeignKey('scrap.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    def __repr__(self):
+        return f"Scrap_Rating('{self.scrap_id}', '{self.rate}')"
+
 class Translation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     lyrics_trans = db.Column(db.Text, nullable=True)
-    rates_sum = db.Column(db.Integer, nullable=False, default=0)
-    rates_count = db.Column(db.Integer, nullable=False, default=0)
     track_id = db.Column(db.Integer, db.ForeignKey('track.id'), nullable=False)
     opinions = db.relationship('Translation_Opinion', backref='translation', lazy=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -164,6 +169,15 @@ class Translation_Opinion(db.Model):
 
     def __repr__(self):
         return f"Translation_Opinion('{self.translation_id}', '{self.text}')"
+
+class Translation_Rating(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    rate = db.Column(db.String(1), nullable=False)
+    translation_id = db.Column(db.Integer, db.ForeignKey('translation.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    def __repr__(self):
+        return f"Scrap_Rating('{self.scrap_id}', '{self.rate}')"
 
 class Discussion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -186,8 +200,6 @@ class Discussion_Post(db.Model):
 class Interpretation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text, nullable=True)
-    rates_sum = db.Column(db.Integer, nullable=False, default=0)
-    rates_count = db.Column(db.Integer, nullable=False, default=0)
     track_id = db.Column(db.Integer, db.ForeignKey('track.id'), nullable=False)
     opinions = db.relationship('Interpretation_Opinion', backref='translation', lazy=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -203,3 +215,12 @@ class Interpretation_Opinion(db.Model):
 
     def __repr__(self):
         return f"Interpretation_Opinion"
+
+class Interpretation_Rating(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    rate = db.Column(db.String(1), nullable=False)
+    interpretation_id = db.Column(db.Integer, db.ForeignKey('interpretation.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    def __repr__(self):
+        return f"Scrap_Rating('{self.scrap_id}', '{self.rate}')"

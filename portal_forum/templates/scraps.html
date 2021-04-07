@@ -64,15 +64,15 @@
             <div class="lyrics-text" id="text-source">
                 {{ tags }}
             </div>
-            <div class="card border-dark mb-3 lyrics-description" id="scrap-container">
-                <div class="card-header scrap-header">
-                    Oznaczony fragment:
+            <div class="card border-dark lyrics-description" id="scrap-container">
+                <div class="card-header scrap-header" style="padding-bottom: 0;">
+                    <b>Oznaczony fragment:</b>
                     <p id="scrap-view">
 
                     </p>
                 </div>
                 <div class="card-body text-dark scrap-body pb-0 pt-0">
-                    <form method="POST">
+                    <form method="POST" id="add-scrap-form">
                         {{ form.hidden_tag() }}
                         <fieldset class="mb-2">
                             <div>
@@ -111,6 +111,14 @@
                             <button type="submit" class="btn bg-dark text-white">Zapisz</button>
                         </div>
                     </form>
+                    <form method="POST" id="rate-scrap-form" style="display: none;">
+                        {{ form.hidden_tag() }}
+                        <fieldset class="mb-2">
+                            <div id="scrap-description-container">
+
+                            </div>
+                        </fieldset>
+                    </form>
                 </div>
             </div>
             <div class="track-nav">
@@ -127,7 +135,8 @@
 
                     Tłumaczenia
                 </a>
-                <a href="{{ url_for("user_activity.track", track_id=track.id) }}" class="btn btn-outline-dark responsive-full mb-2">
+                <a href="{{ url_for("user_activity.track", track_id=track.id) }}"
+                   class="btn btn-outline-dark responsive-full mb-2">
                     Dyskusja
                 </a>
             </div>
@@ -172,6 +181,8 @@
         }
 
         document.getElementById('text-source').addEventListener('mouseup', function (e) {
+            document.getElementById("rate-scrap-form").style.display = "none"
+            document.getElementById("add-scrap-form").style.display = "block"
             var target = document.getElementById("scrap-view")
             target.innerHTML = ""
             document.getElementById('scrap-container').style.visibility = "visible"
@@ -184,5 +195,18 @@
         document.getElementById('content').addEventListener('mousedown', function (e) {
             //document.getElementById('scrap-container').style.visibility = "hidden"
         });
+
+        $(".scrap-marking").click(function () {
+            document.getElementById("add-scrap-form").style.display = "none"
+            document.getElementById("rate-scrap-form").style.display = "block"
+            document.getElementById('scrap-container').style.visibility = "visible"
+            scrapNmbClass = $(this).attr('class').split(' ')[1];
+            scrapNmb = scrapNmbClass[scrapNmbClass.length - 1]
+            var descriptions = JSON.parse({{ scrap_descriptions | tojson }})
+            //console.log(descriptions[scrapNmb])
+            $("#scrap-view").html($(this).text())
+            $("#scrap-description-container").html(descriptions[scrapNmb])
+        });
+
     </script>
 {% endblock content %}

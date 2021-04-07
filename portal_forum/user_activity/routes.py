@@ -1,8 +1,7 @@
 import sys
 from functools import wraps
 
-from flask import Blueprint, g
-from flask import render_template, url_for, redirect, flash, request, abort
+from flask import render_template, url_for, redirect, flash, request, abort, Blueprint, g, json
 from markupsafe import Markup
 from sqlalchemy import desc, asc
 from portal_forum.user_activity.forms import ThreadForm, PostForm, TrackForm, ScrapForm
@@ -277,10 +276,8 @@ def scraps(track_id):
     track = Track.query.get_or_404(track_id)
     tags = track.lyrics
     tags = tags.replace("&#39;", "\'")
-    print("_____________________________________________________", file=sys.stderr)
-    print(tags, file=sys.stderr)
-    print("_____________________________________________________", file=sys.stderr)
     scrap_type = 0
+    scrap_descriptions = []
     for scrap in track.scraps:
 
         text_to_find = scrap.text
@@ -295,8 +292,9 @@ def scraps(track_id):
             y = x + len(text_to_find)
             tags = tags[:y] + "</span>" + tags[y:]
             i += 1
+        scrap_descriptions.append(track.scraps[scrap_type].description)
         scrap_type += 1
-
+    scrap_descriptions = json.dumps(scrap_descriptions)
     tags = Markup(tags)
     form = ScrapForm()
     if form.validate_on_submit():
@@ -314,7 +312,7 @@ def scraps(track_id):
             flash("Ten fragment został już oznaczony", "danger")
             return redirect(url_for('user_activity.scraps', track_id=track_id))
     return render_template('scraps.html', title=track.title, image_file=check_image(), track=track, tags=tags,
-                           form=form)
+                           form=form, scrap_descriptions=scrap_descriptions)
 
 
 @login_required
