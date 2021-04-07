@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="site" uuid="639b7b5e-9b38-4da5-abf2-bf4215f4c1e1">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:D:\niebezpieczenstwo\EPI\Rok III\seminarium\portal\site.db</jdbc-url>
+    </data-source>
+    <data-source source="LOCAL" name="site [2]" uuid="e3127663-2b37-4574-8827-36eb7180895e">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:D:\niebezpieczenstwo\EPI\Rok III\seminarium\portal\portal_forum\site.db</jdbc-url>
+    </data-source>
+  </component>
+</project>
