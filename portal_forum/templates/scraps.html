@@ -1,6 +1,6 @@
 {% extends "forum-layout.html" %}
 {% block content %}
-    <script src="https://cdn.ckeditor.com/ckeditor5/11.0.1/classic/ckeditor.js"></script>
+    <script src="{{ url_for('static', filename='ckeditor-basic-2/ckeditor.js') }}"></script>
     <article class="media content-section">
         <div class="article-user-info">
             <h5>
@@ -70,54 +70,49 @@
                     <p id="scrap-view">
 
                     </p>
+                    <button type="button" id="btn-mark" onclick="highlight();" class="btn btn-dark responsive-full">
+                        Oznacz
+                    </button>
+                    <a class="btn btn-dark" id="btn-reset"
+                       href="{{ url_for("user_activity.scraps", track_id=track.id) }}">Resetuj</a>
                 </div>
                 <div class="card-body text-dark scrap-body pb-0 pt-0">
                     <form method="POST" id="add-scrap-form">
                         {{ form.hidden_tag() }}
                         <fieldset class="mb-2">
                             <div>
-                                {% if form.scrap_description.errors %}
-                                    {{ form.scrap_description(class="form-control form-control-lg is-invalid", name="scrap_description", id="scrap_description") }}
-                                    <div class="invalid-feedback">
-                                        {% for error in form.scrap_description.errors %}
-                                            <span>{{ error }}</span>
-                                        {% endfor %}
-                                    </div>
-                                {% else %}
-                                    {{ form.scrap_description(class="form-control form-control-lg") }}
-                                {% endif %}
-                            </div>
-                            <div>
-                                {% if form.scrap_text.errors %}
-                                    {{ form.scrap_text(class="form-control form-control-lg is-invalid", id="scrap_text", value="") }}
-                                    <div class="invalid-feedback">
-                                        {% for error in form.scrap_text.errors %}
-                                            <span>{{ error }}</span>
-                                        {% endfor %}
-                                    </div>
-                                {% else %}
-                                    {{ form.scrap_text(class="form-control form-control-lg") }}
-                                {% endif %}
+                                {{ form.description(id="description") }}
                             </div>
                             <script>
-                                ClassicEditor
-                                    .create(document.querySelector('#scrap_description'))
-                                    .catch(error => {
-                                        console.error(error);
-                                    });
+                                CKEDITOR.replace('description');
                             </script>
-                        </fieldset>
-                        <div class="form-group">
-                            <button type="submit" class="btn bg-dark text-white">Zapisz</button>
-                        </div>
-                    </form>
-                    <form method="POST" id="rate-scrap-form" style="display: none;">
-                        {{ form.hidden_tag() }}
-                        <fieldset class="mb-2">
-                            <div id="scrap-description-container">
-
+                            <div>
+                                {{ form.lyrics_with_scraps(class="form-control form-control-lg is-invalid", id="lyrics_with_scraps", style="display:none;") }}
                             </div>
                         </fieldset>
+                        <div class="form-group">
+                            <button id="btn-save" type="submit" class="btn bg-dark text-white responsive-full">Zapisz
+                            </button>
+                        </div>
+                    </form>
+                    <form id="rate-scrap-form" method="POST">
+                        <div id="scrap-description-container">
+
+                        </div>
+                        <button type="button" class="btn btn-success">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                 class="bi bi-plus-square" viewBox="0 0 16 16">
+                                <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"></path>
+                                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"></path>
+                            </svg>
+                        </button>
+                        <button type="button" class="btn btn-outline-danger">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                 class="bi bi-dash-square" viewBox="0 0 16 16">
+                                <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"></path>
+                                <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z"></path>
+                            </svg>
+                        </button>
                     </form>
                 </div>
             </div>
@@ -168,6 +163,15 @@
 
     <a href="{{ url_for('user_activity.tracks') }}" class="btn bg-dark text-white responsive-full">Lista utworów</a>
     <script>
+        /*window.addEventListener("click", function (event) {
+            var target = event.target
+            if (target.className.split(' ')[0] !="scrap-marking" && target.id != "btn-mark" && target.className.split(' ')[0] != "ck" && target.parentNode.className.split(' ')[0] != "ck") {
+                if (window.getSelection().toString() == "") {
+                    document.getElementById("scrap-view").innerHTML = ""
+                }
+            }
+        });*/
+
         function getSelectionText() {
             var text = "";
             if (window.getSelection) {
@@ -180,31 +184,91 @@
             return text;
         }
 
+        function clearSelection() {
+            if (document.selection) {
+                document.selection.empty();
+            } else if (window.getSelection) {
+                window.getSelection().removeAllRanges();
+            }
+        }
+
+        window.highlight = function () {
+            if (window.getSelection().toString() != "") {
+                document.getElementById("add-scrap-form").style.display = "block"
+                document.getElementById("btn-mark").style.display = "none"
+                document.getElementById("btn-reset").style.display = "block"
+
+
+                var selection = window.getSelection().getRangeAt(0);
+                var selectedText = selection.extractContents();
+                var text = ""
+
+                for (i = 0; i < selectedText.childNodes.length; i++) {
+                    var temp = ''
+                    if (selectedText.childNodes[i].nodeName == "BR") {
+                        temp = "<" + selectedText.childNodes[i].nodeName + "/>"
+                    } else if (selectedText.childNodes[i].nodeName != "#text") {
+                        temp = "<" + selectedText.childNodes[i].nodeName + ">" + selectedText.childNodes[i].textContent + "</" + selectedText.childNodes[i].nodeName + ">"
+                    } else {
+                        temp += selectedText.childNodes[i].textContent
+                    }
+                    text += temp
+                }
+                var scrap_id =
+                {{ track.scraps|length }}
+                var span = $("<span class='scrap-marking scrap-piece-" + scrap_id + "' >" + text + "</span>");
+                selection.insertNode(span[0]);
+
+
+                var txt = $('#text-source').html();
+                clearSelection();
+
+                $("#lyrics_with_scraps").attr("value", txt);
+            }
+        }
+
         document.getElementById('text-source').addEventListener('mouseup', function (e) {
+
             document.getElementById("rate-scrap-form").style.display = "none"
-            document.getElementById("add-scrap-form").style.display = "block"
             var target = document.getElementById("scrap-view")
-            target.innerHTML = ""
-            document.getElementById('scrap-container').style.visibility = "visible"
+            //target.innerHTML = ""
             var selectedText = getSelectionText()
             var textnode = document.createTextNode(selectedText);
             target.appendChild(textnode);
 
-            document.getElementById("scrap_text").value = selectedText
         });
-        document.getElementById('content').addEventListener('mousedown', function (e) {
-            //document.getElementById('scrap-container').style.visibility = "hidden"
-        });
+        var elements = document.getElementsByClassName("scrap-marking");
+
+        /*for (var i = 0; i < elements.length; i++) {
+            elements[i].addEventListener("click", function (event) {
+                var descriptions = JSON.parse({{ scrap_descriptions | tojson }})
+                document.getElementById("add-scrap-form").style.display = "none"
+                document.getElementById("rate-scrap-form").style.display = "block"
+                //console.log(event.target)
+                scrapClass = event.target.className.split(' ')[1]
+                //console.log(scrapClass.split('-')[2])
+                scrapNmb = scrapClass.split('-')[2]
+                var scrapText = event.target.innerText
+                console.log(scrapText)
+                var target = document.getElementById("scrap-body")
+                target.innerHTML = ""
+                var text = descriptions[scrapClass.split('-')[2]]
+                console.log(text)
+                var textnode = document.createTextNode(text);
+                console.log(target)
+                target.appendChild(textnode);
+            });
+        }*/
 
         $(".scrap-marking").click(function () {
             document.getElementById("add-scrap-form").style.display = "none"
             document.getElementById("rate-scrap-form").style.display = "block"
             document.getElementById('scrap-container').style.visibility = "visible"
             scrapNmbClass = $(this).attr('class').split(' ')[1];
-            scrapNmb = scrapNmbClass[scrapNmbClass.length - 1]
+            scrapNmb = scrapNmbClass.split('-')[2]
             var descriptions = JSON.parse({{ scrap_descriptions | tojson }})
-            //console.log(descriptions[scrapNmb])
             $("#scrap-view").html($(this).text())
+            console.log($(this).text())
             $("#scrap-description-container").html(descriptions[scrapNmb])
         });
 

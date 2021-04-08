@@ -201,8 +201,10 @@ def new_track():
 
     if form.validate_on_submit():
         albums_list = request.form.getlist("albums")
-
-        track = Track(title=form.title.data, lyrics=form.lyrics.data, author=current_user,
+        tags = form.lyrics.data
+        tags = tags.replace("<p>", '')
+        tags = tags.replace("</p>", "<br/>")
+        track = Track(title=form.title.data, lyrics=tags, lyrics_with_scraps=tags, author=current_user,
                       date_release=form.date_release.data, lyrics_by=form.lyrics_by.data,
                       description=form.description.data)
 
@@ -232,12 +234,19 @@ def update_track(track_id):
         abort(403)
     form = TrackForm()
     if form.validate_on_submit():
+        tags = form.lyrics.data
+        tags = tags.replace("<p>", '')
+        tags = tags.replace("</p>", "<br/>")
+
         track.title = form.title.data
-        track.lyrics = form.lyrics.data
+        track.lyrics = tags
+        track.lyrics_with_scraps = tags
         track.description = form.description.data
         track.date_release = form.date_release.data
         track.lyrics_by = form.lyrics_by.data
         track.date_last_update = datetime.strptime(str(datetime.utcnow()), "%Y-%m-%d %H:%M:%S.%f")
+        for scrap in track.scraps:
+            db.session.delete(scrap)
         db.session.commit()
         flash("Wątek zaktualizowany!", 'success')
         return redirect(url_for('user_activity.track', track_id=track.id))
@@ -257,7 +266,7 @@ def delete_track(track_id):
     track = Track.query.get_or_404(track_id)
     if track.author != current_user and not current_user.is_admin:
         abort(403)
-    discussion = track.discussion
+    discussion = Discussion.query.filter_by(track_id=track_id).first()
     db.session.delete(discussion)
     db.session.delete(track)
     db.session.commit()
@@ -268,49 +277,24 @@ def delete_track(track_id):
 @login_required
 @user_activity.route('/track/<int:track_id>/scraps', methods=['GET', 'POST'])
 def scraps(track_id):
-    '''
-    print("_____________________________________________________-", file=sys.stderr)
-    print(year, file=sys.stderr)
-    print("_____________________________________________________", file=sys.stderr)
-    '''
     track = Track.query.get_or_404(track_id)
-    tags = track.lyrics
-    tags = tags.replace("&#39;", "\'")
-    scrap_type = 0
+    tags = track.lyrics_with_scraps
     scrap_descriptions = []
     for scrap in track.scraps:
-
-        text_to_find = scrap.text
-        i = 0
-        for z in re.findall(text_to_find, tags):
-            positions = [m.start() for m in re.finditer(text_to_find, tags)]
-
-            x = positions[i]
-            tags = tags[:x] + "<span class='scrap-marking scrap-piece" + str(scrap_type) + "'>" + tags[x:]
-            positions = [m.start() for m in re.finditer(text_to_find, tags)]
-            x = positions[i]
-            y = x + len(text_to_find)
-            tags = tags[:y] + "</span>" + tags[y:]
-            i += 1
-        scrap_descriptions.append(track.scraps[scrap_type].description)
-        scrap_type += 1
+        scrap_descriptions.append(scrap.description)
     scrap_descriptions = json.dumps(scrap_descriptions)
+
     tags = Markup(tags)
     form = ScrapForm()
     if form.validate_on_submit():
-        scraps = []
-        for scrap in track.scraps:
-            scraps.append(scrap.text)
-        if form.scrap_text.data not in scraps:
-            new_scrap = Scrap(text=form.scrap_text.data, description=form.scrap_description.data, track_id=track_id,
+        track.lyrics_with_scraps = form.lyrics_with_scraps.data
+        new_scrap = Scrap(description=form.description.data, track_id=track_id,
                           author=current_user)
-            db.session.add(new_scrap)
-            db.session.commit()
-            flash("Fragment został oznaczony", "success")
-            return redirect(url_for('user_activity.scraps', track_id=track_id))
-        else:
-            flash("Ten fragment został już oznaczony", "danger")
-            return redirect(url_for('user_activity.scraps', track_id=track_id))
+        db.session.add(new_scrap)
+        db.session.commit()
+        flash("Fragment został oznaczony", "success")
+        return redirect(url_for('user_activity.scraps', track_id=track_id))
+
     return render_template('scraps.html', title=track.title, image_file=check_image(), track=track, tags=tags,
                            form=form, scrap_descriptions=scrap_descriptions)
 

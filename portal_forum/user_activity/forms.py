@@ -40,5 +40,7 @@ def validate_scrap(form, scrap_description):
         raise ValidationError('Oznaczono za krótki fragment.')
 
 class ScrapForm(FlaskForm):
-    scrap_description = TextAreaField('Fragment', [validate_scrap])
-    scrap_text = HiddenField("scrap-text", validators=[DataRequired()])
+    description = TextAreaField('Fragment', validators=[DataRequired()])
+    lyrics_with_scraps = HiddenField("zaznaczone fragmenty")
+    '''index_from = HiddenField("scrap-text-start", validators=[DataRequired()])
+    index_to = HiddenField("scrap-text-end", validators=[DataRequired()])'''

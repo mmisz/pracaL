@@ -79,6 +79,7 @@ class Track(db.Model):
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     date_last_update = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     lyrics = db.Column(db.Text, nullable=False)
+    lyrics_with_scraps = db.Column(db.Text, nullable=False)
     lyrics_by = db.Column(db.String(128), nullable=True)
     published = db.Column(db.SmallInteger, default=0, nullable=False)
     description = db.Column(db.Text, nullable=True)
@@ -120,18 +121,15 @@ class Track_Post(db.Model):
 
 class Scrap(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    '''
-    index_from = db.Column(db.Integer, nullable=False)
-    index_to = db.Column(db.Integer, nullable=False)
-    '''
-    text = db.Column(db.Text, nullable=False)
+    '''index_from = db.Column(db.Integer, nullable=False)
+    index_to = db.Column(db.Integer, nullable=False)'''
     description = db.Column(db.Text, nullable=False)
     track_id = db.Column(db.Integer, db.ForeignKey('track.id'), nullable=False)
     opinions = db.relationship('Scrap_Opinion', backref='scrap', lazy=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
-        return f"Scrap('{self.text}')"
+        return f"Scrap('{self.description}')"
 
 class Scrap_Opinion(db.Model):
     id = db.Column(db.Integer, primary_key=True)

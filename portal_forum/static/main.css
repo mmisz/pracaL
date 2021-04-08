@@ -11,10 +11,6 @@
     margin-bottom: 5px;
 }
 
-#scrap-container {
-    visibility: hidden;
-}
-
 blockquote {
     padding-left: 20px;
     padding-right: 8px;
@@ -35,6 +31,20 @@ blockquote {
     min-width: 30%;
     max-width: 42%;
     vertical-align: top;
+}
+
+#btn-mark {
+    display: block;
+}
+#rate-scrap-form{
+    display: none;
+}
+#add-scrap-form {
+    display: none;
+}
+
+#btn-reset {
+    display: none;
 }
 
 .scrap-marking {
