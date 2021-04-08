@@ -60,8 +60,8 @@
             </div>
 
             <h2 class="article-title">{{ track.title }}</h2>
-
             <div class="lyrics-text" id="text-source">
+                <div id="darkLayer" class="darkClass" style="display: none;"></div>
                 {{ tags }}
             </div>
             <div class="card border-dark lyrics-description" id="scrap-container">
@@ -91,14 +91,15 @@
                             </div>
                         </fieldset>
                         <div class="form-group">
-                            <button id="btn-save" type="submit" class="btn bg-dark text-white responsive-full">Zapisz
+                            <button id="btn-save" type="submit" class="btn bg-dark text-white responsive-full">
+                                Zapisz
                             </button>
                         </div>
                     </form>
-                    <form id="rate-scrap-form" method="POST">
-                        <div id="scrap-description-container">
+                    <div id="scrap-description-container">
 
-                        </div>
+                    </div>
+                    <form id="rate-scrap-form" method="POST">
                         <button type="button" class="btn btn-success">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                                  class="bi bi-plus-square" viewBox="0 0 16 16">
@@ -194,6 +195,8 @@
 
         window.highlight = function () {
             if (window.getSelection().toString() != "") {
+                $(".lyrics-text:first").addClass("disable-div");
+                document.getElementById("darkLayer").style.display = "block"
                 document.getElementById("add-scrap-form").style.display = "block"
                 document.getElementById("btn-mark").style.display = "none"
                 document.getElementById("btn-reset").style.display = "block"
@@ -228,10 +231,11 @@
         }
 
         document.getElementById('text-source').addEventListener('mouseup', function (e) {
-
+            document.getElementById("btn-mark").style.display = "block"
             document.getElementById("rate-scrap-form").style.display = "none"
+            document.getElementById("scrap-description-container").innerHTML = ''
             var target = document.getElementById("scrap-view")
-            //target.innerHTML = ""
+            target.innerHTML = ""
             var selectedText = getSelectionText()
             var textnode = document.createTextNode(selectedText);
             target.appendChild(textnode);
@@ -261,14 +265,17 @@
         }*/
 
         $(".scrap-marking").click(function () {
+            document.getElementById("btn-mark").style.display = "none"
             document.getElementById("add-scrap-form").style.display = "none"
             document.getElementById("rate-scrap-form").style.display = "block"
             document.getElementById('scrap-container').style.visibility = "visible"
             scrapNmbClass = $(this).attr('class').split(' ')[1];
             scrapNmb = scrapNmbClass.split('-')[2]
             var descriptions = JSON.parse({{ scrap_descriptions | tojson }})
+            var authors = JSON.parse({{ scrap_authors | tojson }})
             $("#scrap-view").html($(this).text())
-            console.log($(this).text())
+            var userData = " Oznaczone przez - <b>" + authors[scrapNmb] + "</b><br>"
+            $("#scrap-view").prepend(userData)
             $("#scrap-description-container").html(descriptions[scrapNmb])
         });
 

@@ -280,14 +280,18 @@ def scraps(track_id):
     track = Track.query.get_or_404(track_id)
     tags = track.lyrics_with_scraps
     scrap_descriptions = []
+    scrap_authors = []
     for scrap in track.scraps:
         scrap_descriptions.append(scrap.description)
+        scrap_authors.append(scrap.author.username)
     scrap_descriptions = json.dumps(scrap_descriptions)
-
+    scrap_authors = json.dumps(scrap_authors)
     tags = Markup(tags)
     form = ScrapForm()
     if form.validate_on_submit():
-        track.lyrics_with_scraps = form.lyrics_with_scraps.data
+        lyrics_with_scraps = form.lyrics_with_scraps.data
+        lyrics_with_scraps = lyrics_with_scraps.replace('<div id="darkLayer" class="darkClass" style="display: block;"></div>','')
+        track.lyrics_with_scraps = lyrics_with_scraps
         new_scrap = Scrap(description=form.description.data, track_id=track_id,
                           author=current_user)
         db.session.add(new_scrap)
@@ -296,7 +300,7 @@ def scraps(track_id):
         return redirect(url_for('user_activity.scraps', track_id=track_id))
 
     return render_template('scraps.html', title=track.title, image_file=check_image(), track=track, tags=tags,
-                           form=form, scrap_descriptions=scrap_descriptions)
+                           form=form, scrap_descriptions=scrap_descriptions, scrap_authors=scrap_authors)
 
 
 @login_required
