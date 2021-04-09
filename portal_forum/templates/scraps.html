@@ -13,7 +13,12 @@
         </div>
         <div class="track-article">
             <div class="article-metadata">
-                <small class="text-muted">{{ track.date_posted.strftime('%Y-%m-%d %H:%M') }}</small>
+                <small class="text-muted">
+                    {{ track.date_posted.strftime('%Y-%m-%d %H:%M') }}
+                    {% if track.date_posted < track.date_last_update %}
+                        | Edytowano: {{ track.date_last_update.strftime('%Y-%m-%d %H:%M') }}
+                    {% endif %}
+                </small>
                 {% if track.author == current_user or current_user.is_admin %}
                     <div class="article-gear-btn">
                         <div>
@@ -70,7 +75,7 @@
                     <p id="scrap-view">
 
                     </p>
-                    <button type="button" id="btn-mark" onclick="highlight();" class="btn btn-dark responsive-full">
+                    <button type="button" id="btn-mark" onclick="highlight();" class="btn btn-dark full mb-2">
                         Oznacz
                     </button>
                     <a class="btn btn-dark" id="btn-reset"
@@ -91,7 +96,7 @@
                             </div>
                         </fieldset>
                         <div class="form-group">
-                            <button id="btn-save" type="submit" class="btn bg-dark text-white responsive-full">
+                            <button id="btn-save" type="submit" class="btn bg-dark text-white full">
                                 Zapisz
                             </button>
                         </div>
@@ -118,6 +123,10 @@
                 </div>
             </div>
             <div class="track-nav">
+                <a href="{{ url_for("user_activity.track", track_id=track.id) }}"
+                   class="btn btn-outline-dark responsive-full mb-2">
+                    Dyskusja
+                </a>
                 <a href="{{ url_for("user_activity.scraps", track_id=track.id) }}"
                    class="btn btn-dark responsive-full mb-2">
 
@@ -130,10 +139,6 @@
                 <a href="#" class="btn btn-outline-dark responsive-full mb-2">
 
                     Tłumaczenia
-                </a>
-                <a href="{{ url_for("user_activity.track", track_id=track.id) }}"
-                   class="btn btn-outline-dark responsive-full mb-2">
-                    Dyskusja
                 </a>
             </div>
         </div>

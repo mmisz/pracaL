@@ -22,7 +22,7 @@ class User(db.Model, UserMixin):
     scrap_Opinion = db.relationship('Scrap_Opinion', backref='author', lazy=True)
     translation = db.relationship('Translation', backref='author', lazy=True)
     translation_Opinion = db.relationship('Translation_Opinion', backref='author', lazy=True)
-    discussion_Post = db.relationship('Discussion_Post', backref='author', lazy=True)
+    #discussion_Post = db.relationship('Discussion_Post', backref='author', lazy=True)
     interpretation = db.relationship('Interpretation', backref='author', lazy=True)
     interpretation_Post = db.relationship('Interpretation_Opinion', backref='author', lazy=True)
 
@@ -92,7 +92,7 @@ class Track(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     scraps = db.relationship('Scrap', backref='track', lazy=True)
     translations = db.relationship('Translation', backref='track', lazy=True)
-    discussion = db.relationship('Discussion', backref='track', lazy=True)
+    comments = db.relationship('Track_Post', backref='track', lazy=True)
 
 
     def __repr__(self):
@@ -151,6 +151,7 @@ class Scrap_Rating(db.Model):
 
 class Translation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(128), nullable=False)
     lyrics_trans = db.Column(db.Text, nullable=True)
     track_id = db.Column(db.Integer, db.ForeignKey('track.id'), nullable=False)
     opinions = db.relationship('Translation_Opinion', backref='translation', lazy=True)
@@ -177,6 +178,7 @@ class Translation_Rating(db.Model):
     def __repr__(self):
         return f"Scrap_Rating('{self.scrap_id}', '{self.rate}')"
 
+'''
 class Discussion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     track_id = db.Column(db.Integer, db.ForeignKey('track.id'), nullable=False)
@@ -194,9 +196,11 @@ class Discussion_Post(db.Model):
 
     def __repr__(self):
         return f"Discussion_Post('{self.discussion_id}', '{self.text}')"
+'''
 
 class Interpretation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(128), nullable=False)
     text = db.Column(db.Text, nullable=True)
     track_id = db.Column(db.Integer, db.ForeignKey('track.id'), nullable=False)
     opinions = db.relationship('Interpretation_Opinion', backref='translation', lazy=True)

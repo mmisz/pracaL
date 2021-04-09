@@ -6,7 +6,7 @@ from markupsafe import Markup
 from sqlalchemy import desc, asc
 from portal_forum.user_activity.forms import ThreadForm, PostForm, TrackForm, ScrapForm
 from portal_forum import db
-from portal_forum.models import Thread, User, Thread_Post, Track, Album, Discussion, Scrap
+from portal_forum.models import Thread, User, Thread_Post, Track, Album, Scrap, Track_Post
 from flask_login import login_user, current_user, logout_user, login_required
 from datetime import datetime
 from portal_forum.users.utils import check_image
@@ -85,7 +85,7 @@ def update_thread(thread_id):
         form.topic.data = thread.topic
         form.description.data = thread.description
     return render_template('create_thread.html', title="Edytuj wątek",
-                           legend="Edytuj wątek", form=form, image_file=check_image())
+                           legend="Edytuj wątek", form=form, image_file=check_image(), thread_id=thread_id)
 
 
 @user_activity.route('/thread/<int:thread_id>/delete', methods=['POST'])
@@ -159,7 +159,8 @@ def update_thread_post(post_id, thread_id):
     elif request.method == "GET":
         form.reply.data = post.reply
     return render_template('thread_reply.html', title="Edytuj odpowiedź",
-                           legend="Edytuj odpowiedź", form=form, image_file=check_image())
+                           legend="Edytuj odpowiedź", form=form,
+                           image_file=check_image(),thread_id=thread.id)
 
 
 @user_activity.route('/thread/<int:thread_id>/reply/<int:post_id>/delete', methods=['POST'])
@@ -180,9 +181,17 @@ def delete_thread_post(thread_id, post_id):
 def track(track_id):
     track = Track.query.get_or_404(track_id)
     tags = Markup(track.lyrics)
+    comments = Track_Post.query. \
+        filter_by(track=track). \
+        order_by(asc(Track_Post.date_posted))
     tags_description = Markup(track.description)
+
+    replies = []
+    for comment in comments:
+        replies.append(Markup(comment.reply))
+
     return render_template('track.html', title=track.title, image_file=check_image(), track=track, tags=tags,
-                           tags_description=tags_description)
+                           tags_description=tags_description, comments=comments, replies=replies)
 
 
 @user_activity.route('/tracks', methods=['GET', 'POST'])
@@ -215,9 +224,6 @@ def new_track():
         db.session.add(track)
         db.session.commit()
 
-        new_track = Track.query.order_by(Track.id.desc()).first()
-        discussion = Discussion(track_id=new_track.id)
-        db.session.add(discussion)
         db.session.commit()
         flash("Utwór został dodany", "success")
         return redirect(url_for('user_activity.tracks'))
@@ -256,7 +262,7 @@ def update_track(track_id):
         form.description.data = track.description
         form.date_release.data = track.date_release
         form.lyrics_by.data = track.lyrics_by
-    return render_template('create_track.html', title="Edytuj utwór",
+    return render_template('create_track.html', title="Edytuj utwór", track_id=track_id,
                            legend="Edytuj utwór", form=form, image_file=check_image())
 
 
@@ -266,13 +272,84 @@ def delete_track(track_id):
     track = Track.query.get_or_404(track_id)
     if track.author != current_user and not current_user.is_admin:
         abort(403)
-    discussion = Discussion.query.filter_by(track_id=track_id).first()
-    db.session.delete(discussion)
     db.session.delete(track)
     db.session.commit()
     flash("Utwór usunięty", 'success')
     return redirect(url_for('main.forum'))
 
+@user_activity.route('/track/<int:track_id>/reply', methods=['GET', 'POST'])
+@login_required
+def track_reply(track_id):
+    form = PostForm()
+    if form.validate_on_submit():
+        post = Track_Post(reply=form.reply.data, author=current_user, track_id=track_id)
+        db.session.add(post)
+        db.session.commit()
+        flash("Odpowiedź została dodana", "success")
+        return redirect(url_for('user_activity.track', track_id=track_id))
+    return render_template('track_reply.html', title="Dodaj Opinię",
+                           legend="Odpowiedz", form=form, image_file=check_image(),
+                           track_id=track_id, reply_id=None)
+
+
+@user_activity.route('/track/<int:track_id>/reply_to/<int:post_id>', methods=['GET', 'POST'])
+@login_required
+def quote_track_post(track_id, post_id):
+    post = Track_Post.query.get_or_404(post_id)
+    form = PostForm()
+    date_posted = str(datetime.strptime(str(post.date_posted), "%Y-%m-%d %H:%M:%S.%f"))
+    date_posted = date_posted.split(".")[0]
+    quote = "<div>" \
+            "<div style='background:#eeeeee;border:1px solid #cccccc;padding:5px 10px;'>" \
+            "<b>" + post.author.username + "</b> powiedział " + date_posted + \
+            "</div>" \
+            "<blockquote class='cke_contents_ltr blockquote'>" + post.reply + "</blockquote>" \
+                                                                              "<p></p></div>"
+    if form.validate_on_submit():
+        post = Track_Post(reply=form.reply.data, author=current_user, track_id=track_id)
+        db.session.add(post)
+        db.session.commit()
+        flash("Odpowiedź została dodana", "success")
+        return redirect(url_for('user_activity.track', track_id=track_id))
+    elif request.method == "GET":
+        form.reply.data = Markup(quote)
+    return render_template('track_reply.html', title="Rozwiń wątek",
+                           legend="Odpowiedz użytkownikowi " + post.author.username, form=form,
+                           image_file=check_image(),
+                           track_id=track_id, reply_id=None)
+
+@user_activity.route('/track/<int:track_id>/reply/<int:post_id>/update', methods=['GET', 'POST'])
+@login_required
+def update_track_post(post_id, track_id):
+    track = Track.query.get_or_404(track_id)
+    post = Track_Post.query.get_or_404(post_id)
+    if post.author != current_user:
+        abort(403)
+    form = PostForm()
+    if form.validate_on_submit():
+        post.reply = form.reply.data
+        post.date_last_update = datetime.strptime(str(datetime.utcnow()), "%Y-%m-%d %H:%M:%S.%f")
+        db.session.commit()
+        flash("Odpowiedź została zaktualizowana!", 'success')
+        return redirect(url_for('user_activity.track', track_id=track.id))
+    elif request.method == "GET":
+        form.reply.data = post.reply
+    return render_template('track_reply.html', title="Edytuj odpowiedź",
+                           legend="Edytuj odpowiedź", form=form,
+                           image_file=check_image(),track_id=track.id)
+
+
+@user_activity.route('/track/<int:track_id>/reply/<int:post_id>/delete', methods=['POST'])
+@login_required
+def delete_track_post(track_id, post_id):
+    track = Track.query.get_or_404(track_id)
+    post = Track_Post.query.get_or_404(post_id)
+    if post.author != current_user:
+        abort(403)
+    db.session.delete(post)
+    db.session.commit()
+    flash("Odpowiedź została usunięta", 'success')
+    return redirect(url_for('user_activity.track', track_id=track.id))
 
 @login_required
 @user_activity.route('/track/<int:track_id>/scraps', methods=['GET', 'POST'])
