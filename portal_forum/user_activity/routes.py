@@ -6,7 +6,7 @@ from markupsafe import Markup
 from sqlalchemy import desc, asc
 from portal_forum.user_activity.forms import ThreadForm, PostForm, TrackForm, ScrapForm
 from portal_forum import db
-from portal_forum.models import Thread, User, Thread_Post, Track, Album, Scrap, Track_Post
+from portal_forum.models import Thread, User, Thread_Post, Track, Album, Scrap, Track_Post, Interpretation
 from flask_login import login_user, current_user, logout_user, login_required
 from datetime import datetime
 from portal_forum.users.utils import check_image
@@ -379,6 +379,17 @@ def scraps(track_id):
     return render_template('scraps.html', title=track.title, image_file=check_image(), track=track, tags=tags,
                            form=form, scrap_descriptions=scrap_descriptions, scrap_authors=scrap_authors)
 
+@login_required
+@user_activity.route('/track/<int:track_id>/interpretations', methods=['GET', 'POST'])
+def interpretations(track_id):
+    track = Track.query.get_or_404(track_id)
+    tags = Markup(track.lyrics)
+    interpretations = Interpretation.query. \
+        filter_by(track=track). \
+        order_by(asc(Interpretation.date_posted))
+
+
+    return render_template('interpretations.html', title=track.title, image_file=check_image(), track=track, tags=tags, interpretations=interpretations)
 
 @login_required
 @user_activity.route("/user/activity/<string:username>")

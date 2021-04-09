@@ -107,7 +107,7 @@
                 </div>
             </div>
             <div class="track-nav">
-                <a href=href="{{ url_for("user_activity.track", track_id=track.id) }}"
+                <a href="{{ url_for("user_activity.track", track_id=track.id) }}"
                    class="btn btn-dark responsive-full mb-2">
                     Dyskusja
                 </a>
@@ -116,7 +116,8 @@
 
                     Fragmenty
                 </a>
-                <a href="#" class="btn btn-outline-dark responsive-full mb-2">
+                <a href="{{ url_for("user_activity.interpretations", track_id=track.id) }}"
+                   class="btn btn-outline-dark responsive-full mb-2">
 
                     Interpretacje
                 </a>

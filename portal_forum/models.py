@@ -93,7 +93,7 @@ class Track(db.Model):
     scraps = db.relationship('Scrap', backref='track', lazy=True)
     translations = db.relationship('Translation', backref='track', lazy=True)
     comments = db.relationship('Track_Post', backref='track', lazy=True)
-
+    interpretations = db.relationship('Interpretation', backref='track', lazy=True)
 
     def __repr__(self):
         return f"Track('{self.title}', '{self.date_release}')"
@@ -124,6 +124,8 @@ class Scrap(db.Model):
     '''index_from = db.Column(db.Integer, nullable=False)
     index_to = db.Column(db.Integer, nullable=False)'''
     description = db.Column(db.Text, nullable=False)
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date_last_update = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     track_id = db.Column(db.Integer, db.ForeignKey('track.id'), nullable=False)
     opinions = db.relationship('Scrap_Opinion', backref='scrap', lazy=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -134,6 +136,8 @@ class Scrap(db.Model):
 class Scrap_Opinion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text, nullable=True)
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date_last_update = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     scrap_id = db.Column(db.Integer, db.ForeignKey('scrap.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
@@ -153,6 +157,8 @@ class Translation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(128), nullable=False)
     lyrics_trans = db.Column(db.Text, nullable=True)
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date_last_update = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     track_id = db.Column(db.Integer, db.ForeignKey('track.id'), nullable=False)
     opinions = db.relationship('Translation_Opinion', backref='translation', lazy=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -163,6 +169,8 @@ class Translation(db.Model):
 class Translation_Opinion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text, nullable=True)
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date_last_update = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     translation_id = db.Column(db.Integer, db.ForeignKey('translation.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
@@ -202,6 +210,8 @@ class Interpretation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(128), nullable=False)
     text = db.Column(db.Text, nullable=True)
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date_last_update = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     track_id = db.Column(db.Integer, db.ForeignKey('track.id'), nullable=False)
     opinions = db.relationship('Interpretation_Opinion', backref='translation', lazy=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -212,6 +222,8 @@ class Interpretation(db.Model):
 class Interpretation_Opinion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text, nullable=True)
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date_last_update = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     interpretation_id = db.Column(db.Integer, db.ForeignKey('interpretation.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
